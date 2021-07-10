@@ -1,13 +1,20 @@
 import { Component } from "react";
-import shortid from "shortid";
+
+import { v4 as uuidv4 } from "uuid";
 import PhoneBookList from "./components/PhoneBook/PhoneBookList";
 import PhoneBookForm from "./components/PhoneBookForm/PhoneBookForm";
 import PhoneBookFilter from "./components/PhoneBook/PhoneBookFilter";
 import filterContacts from "./components/helpers/FilterContacts";
+import { Aside, Block } from "./components/PhoneBook/PhoneBook.styled";
 
 export default class App extends Component {
   state = {
-    contacts: [],
+    contacts: [
+      { id: "id-1", name: "Rosie Simpson", number: "459-12-56" },
+      { id: "id-2", name: "Hermione Kline", number: "443-89-12" },
+      { id: "id-3", name: "Eden Clements", number: "645-17-79" },
+      { id: "id-4", name: "Annie Copeland", number: "227-91-26" },
+    ],
     name: "",
     number: "",
     filter: "",
@@ -17,25 +24,30 @@ export default class App extends Component {
       [e.target.name]: e.target.value,
     });
   };
-
-  handleAddContact = (e) => {
-    e.preventDefault();
-    if (this.state.contacts.some((el) => el.name === this.state.name)) {
-      alert(`${this.state.name} is already in contacts`);
-    }
-    if (this.state.contacts.some((el) => el.number === this.state.number)) {
-      alert(`${this.state.number} is already in contacts`);
-    }
+  addContact() {
+    const { name, number } = this.state;
     const contact = {
-      name: this.state.name,
-      number: this.state.number,
-      id: shortid.generate(),
+      name: name,
+      number: number,
+      id: uuidv4(),
     };
     this.setState((prev) => ({
       contacts: [...prev.contacts, contact],
       name: "",
       number: "",
     }));
+  }
+  handleAddContact = (e) => {
+    e.preventDefault();
+    const { name, number, contacts } = this.state;
+    if (
+      contacts.some((el) => el.name === name) ||
+      contacts.some((el) => el.number === number)
+    ) {
+      alert(`${name} is already in contacts`);
+    } else {
+      this.addContact();
+    }
   };
   handleDeleteContact = (e) => {
     this.setState({
@@ -48,24 +60,30 @@ export default class App extends Component {
     });
   };
   render() {
+    const { name, number } = this.state;
     const contacts = filterContacts(this.state.contacts, this.state.filter);
     return (
-      <div>
+      <Aside>
+        <h1>Phonebook</h1>
         <PhoneBookForm
-          name={this.state.name}
-          number={this.state.number}
+          contacts={contacts}
+          name={name}
+          number={number}
           onSetUserInfo={this.handleSetUserInfo}
           onAddContact={this.handleAddContact}
         />
-        <PhoneBookFilter
-          filterValue={this.state.filter}
-          onSetFilter={this.handleChangeFilter}
-        />
-        <PhoneBookList
-          contacts={contacts}
-          onDeleteContact={this.handleDeleteContact}
-        />
-      </div>
+        <Block>
+          <h2>Contacts</h2>
+          <PhoneBookFilter
+            filterValue={this.state.filter}
+            onSetFilter={this.handleChangeFilter}
+          />
+          <PhoneBookList
+            contacts={contacts}
+            onDeleteContact={this.handleDeleteContact}
+          />
+        </Block>
+      </Aside>
     );
   }
 }
